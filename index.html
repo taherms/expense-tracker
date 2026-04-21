@@ -618,11 +618,18 @@
       if (Object.keys(summary).length === 0) {
         table.innerHTML = '<tr><td colspan="2" style="text-align: center; color: #999;">No expenses found</td></tr>';
       } else {
+        let grandTotal = 0;
         Object.keys(summary).forEach(cat => {
           const row = document.createElement('tr');
           row.innerHTML = `<td>${sanitizeInput(cat)}</td><td>${summary[cat].toFixed(2)}</td>`;
           table.appendChild(row);
+          grandTotal += summary[cat];
         });
+        // Add grand total row
+        const totalRow = document.createElement('tr');
+        totalRow.style.fontWeight = 'bold';
+        totalRow.innerHTML = `<td style="border-top:2px solid #6366f1;">Total</td><td style="border-top:2px solid #6366f1;">${grandTotal.toFixed(2)}</td>`;
+        table.appendChild(totalRow);
       }
 
       // Update chart
