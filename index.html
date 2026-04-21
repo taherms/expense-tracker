@@ -241,12 +241,72 @@
       font-weight: 600;
       color: #2d3748;
     }
+    .expense-history {
+      margin-top: 16px;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      background: #f8fafc;
+      padding: 16px;
+    }
+    .expense-history h4 {
+      margin: 0 0 6px;
+      color: #1f2937;
+    }
+    .expense-history p {
+      margin: 0;
+      color: #64748b;
+      font-size: 0.95rem;
+    }
+    .expense-history-list {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+    .expense-history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+    }
+    .expense-history-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .expense-history-category {
+      font-weight: 600;
+      color: #1f2937;
+    }
+    .expense-history-date {
+      font-size: 0.9rem;
+      color: #64748b;
+    }
+    .expense-history-amount {
+      font-weight: 700;
+      color: #2563eb;
+      white-space: nowrap;
+    }
+    .expense-history-total {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #dbeafe;
+      font-weight: 700;
+      color: #1e40af;
+    }
     @media (max-width: 600px) {
       .container { padding: 10px; }
       .card { padding: 12px 6px; }
       .row { flex-direction: column; gap: 0; }
       .calendar-grid { gap: 2px; padding: 8px; }
       .calendar-day { padding: 8px 2px; font-size: 0.85rem; }
+      .expense-history-item {
+        align-items: flex-start;
+        flex-direction: column;
+      }
     }
     #summaryChart {   display: block; text-align: center;}
   </style>
@@ -292,6 +352,10 @@
       <option value="">Select a category</option>
     </select>
     <button id="saveExpenseBtn" onclick="addExpense()" aria-label="Save Expense">Save Expense</button>
+    <div id="expenseHistory" class="expense-history" aria-live="polite">
+      <h4>Expenses up to selected date</h4>
+      <p>Select a date to view saved expenses.</p>
+    </div>
     <div class="card">
       <input type="text" id="newCategory" placeholder="Add new category" aria-label="New category name">
       <button onclick="addCategory()" aria-label="Add new category">Add Category</button>
@@ -341,10 +405,13 @@
 
   const categorySelect = document.getElementById('category');
   const notificationDiv = document.getElementById('notification');
+  const expenseHistoryDiv = document.getElementById('expenseHistory');
 
   // CALENDAR STATE
   let currentCalendarDate = new Date();
   let selectedDate = null;
+  let userExpenses = [];
+  let expenseDates = new Set();
 
   // UTILITY: Input sanitization to prevent XSS
   function sanitizeInput(input) {
@@ -381,12 +448,13 @@
   function initializeCalendar() {
     currentCalendarDate = new Date();
     renderCalendar();
+    renderExpenseHistory();
   }
 
   function renderCalendar() {
     const year = currentCalendarDate.getFullYear();
     const month = currentCalendarDate.getMonth();
-    let expenseDates = new Set();
+    
     // Set header
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'];
@@ -438,13 +506,17 @@
       if (selectedDate && dateStr === selectedDate) {
         dayEl.classList.add('selected');
       }
+
+      if (expenseDates.has(dateStr)) {
+        dayEl.classList.add('has-expense');
+      }
       
       dayEl.onclick = () => selectDate(dateStr);
       grid.appendChild(dayEl);
     }
     
     // Add next month's days
-    // Get all expense dates for this month (if logged in)
+        // Get all expense dates for this month (if logged in)
     const totalCells = grid.children.length - 7; // Subtract weekday headers
     const remainingCells = 42 - totalCells; // 6 rows * 7 days
     for (let day = 1; day <= remainingCells; day++) {
@@ -464,6 +536,7 @@
     document.getElementById('dateDisplay').textContent = date.toLocaleDateString('en-US', options);
     
     renderCalendar();
+    renderExpenseHistory();
   }
 
   function previousMonth() {
@@ -474,6 +547,121 @@
   function nextMonth() {
     currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
     renderCalendar();
+  }
+
+  function formatDateLabel(dateStr) {
+    return new Date(`${dateStr}T00:00:00`).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
+
+  function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  }
+
+  function renderExpenseHistory() {
+    expenseHistoryDiv.innerHTML = '';
+
+    const title = document.createElement('h4');
+    title.textContent = 'Expenses up to selected date';
+    expenseHistoryDiv.appendChild(title);
+
+    const message = document.createElement('p');
+
+    if (!auth.currentUser) {
+      message.textContent = 'Log in to view saved expenses.';
+      expenseHistoryDiv.appendChild(message);
+      return;
+    }
+
+    if (!selectedDate) {
+      message.textContent = 'Select a date to view saved expenses.';
+      expenseHistoryDiv.appendChild(message);
+      return;
+    }
+
+    const matchingExpenses = userExpenses
+      .filter(expense => expense.date <= selectedDate)
+      .sort((a, b) => b.date.localeCompare(a.date));
+
+    if (matchingExpenses.length === 0) {
+      message.textContent = `No expenses found on or before ${formatDateLabel(selectedDate)}.`;
+      expenseHistoryDiv.appendChild(message);
+      return;
+    }
+
+    message.textContent = `Showing ${matchingExpenses.length} expense(s) saved on or before ${formatDateLabel(selectedDate)}.`;
+    expenseHistoryDiv.appendChild(message);
+
+    const list = document.createElement('div');
+    list.className = 'expense-history-list';
+
+    let total = 0;
+    matchingExpenses.forEach(expense => {
+      total += expense.amount;
+
+      const item = document.createElement('div');
+      item.className = 'expense-history-item';
+
+      const meta = document.createElement('div');
+      meta.className = 'expense-history-meta';
+
+      const category = document.createElement('span');
+      category.className = 'expense-history-category';
+      category.textContent = expense.category;
+
+      const date = document.createElement('span');
+      date.className = 'expense-history-date';
+      date.textContent = formatDateLabel(expense.date);
+
+      const amount = document.createElement('span');
+      amount.className = 'expense-history-amount';
+      amount.textContent = formatCurrency(expense.amount);
+
+      meta.appendChild(category);
+      meta.appendChild(date);
+      item.appendChild(meta);
+      item.appendChild(amount);
+      list.appendChild(item);
+    });
+
+    expenseHistoryDiv.appendChild(list);
+
+    const totalEl = document.createElement('div');
+    totalEl.className = 'expense-history-total';
+    totalEl.textContent = `Total: ${formatCurrency(total)}`;
+    expenseHistoryDiv.appendChild(totalEl);
+  }
+
+  async function loadExpenses() {
+    if (!auth.currentUser) {
+      userExpenses = [];
+      expenseDates = new Set();
+      renderCalendar();
+      renderExpenseHistory();
+      return;
+    }
+
+    try {
+      const snapshot = await db.collection('expenses')
+        .where("user", "==", auth.currentUser.uid)
+        .get();
+
+      userExpenses = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      expenseDates = new Set(userExpenses.map(expense => expense.date));
+      renderCalendar();
+      renderExpenseHistory();
+    } catch (error) {
+      showNotification('Failed to load expenses: ' + error.message, 'error');
+    }
   }
 
   // AUTH
@@ -494,13 +682,14 @@
     if (user) {
       document.getElementById('userInfo').textContent = "Logged in as " + sanitizeInput(user.email);
       loadCategories();
+      loadExpenses();
     } else {
       document.getElementById('userInfo').textContent = "Not logged in";
-      // Highlight if expense exists
-          if (expenseDates.has(dateStr)) {
-            dayEl.classList.add('has-expense');
-          }
       categorySelect.innerHTML = '<option value="">Select a category</option>';
+      userExpenses = [];
+      expenseDates = new Set();
+      renderCalendar();
+      renderExpenseHistory();
     }
   });
 
@@ -581,9 +770,7 @@
       // IMPROVEMENT: Clear form after successful save
       document.getElementById('amount').value = '';
       categorySelect.value = '';
-      selectedDate = null;
-      document.getElementById('dateDisplay').textContent = 'Select a date';
-      renderCalendar();
+      await loadExpenses();
 
       showNotification('Expense saved successfully!', 'success');
     } catch (error) {
