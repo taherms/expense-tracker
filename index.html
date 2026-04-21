@@ -150,10 +150,97 @@
         transform: translateY(0);
       }
     }
+    /* CALENDAR STYLES */
+    .calendar-wrapper {
+      margin: 7px 0;
+    }
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: #6366f1;
+      color: white;
+      border-radius: 8px 8px 0 0;
+      font-weight: 600;
+    }
+    .calendar-header button {
+      width: auto;
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      cursor: pointer;
+      border-radius: 4px;
+      font-weight: 600;
+      margin: 0;
+      transition: background 0.2s;
+    }
+    .calendar-header button:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      padding: 12px;
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 0 0 8px 8px;
+    }
+    .calendar-weekday {
+      text-align: center;
+      font-weight: 600;
+      color: #6366f1;
+      padding: 8px 4px;
+      font-size: 0.9rem;
+    }
+    .calendar-day {
+      padding: 10px 4px;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      transition: background 0.2s, border 0.2s;
+      font-size: 0.95rem;
+    }
+    .calendar-day:hover {
+      background: #e0e7ff;
+      border-color: #6366f1;
+    }
+    .calendar-day.other-month {
+      color: #cbd5e1;
+      cursor: not-allowed;
+    }
+    .calendar-day.other-month:hover {
+      background: transparent;
+      border-color: transparent;
+    }
+    .calendar-day.selected {
+      background: #6366f1;
+      color: white;
+      border-color: #6366f1;
+      font-weight: 600;
+    }
+    .calendar-day.today {
+      border: 2px solid #10b981;
+    }
+    #dateDisplay {
+      padding: 12px;
+      margin: 7px 0;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 600;
+      color: #2d3748;
+    }
     @media (max-width: 600px) {
       .container { padding: 10px; }
       .card { padding: 12px 6px; }
       .row { flex-direction: column; gap: 0; }
+      .calendar-grid { gap: 2px; padding: 8px; }
+      .calendar-day { padding: 8px 2px; font-size: 0.85rem; }
     }
     #summaryChart { margin: 24px 0 0 0; max-width: 500px; display: block; }
   </style>
@@ -181,7 +268,19 @@
   <!-- ADD EXPENSE -->
   <div id="add" class="card">
     <h3>Add Expense</h3>
-    <input type="date" id="date" aria-label="Date">
+    
+    <!-- CALENDAR PICKER -->
+    <div class="calendar-wrapper">
+      <div id="dateDisplay" aria-label="Selected date">Select a date</div>
+      <div class="calendar-header">
+        <button onclick="previousMonth()" aria-label="Previous month">&lt;</button>
+        <span id="calendarMonth"></span>
+        <button onclick="nextMonth()" aria-label="Next month">&gt;</button>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+      <input type="hidden" id="date">
+    </div>
+
     <input type="number" id="amount" placeholder="Amount" aria-label="Amount" step="0.01">
     <select id="category" aria-label="Category">
       <option value="">Select a category</option>
@@ -237,6 +336,10 @@
   const categorySelect = document.getElementById('category');
   const notificationDiv = document.getElementById('notification');
 
+  // CALENDAR STATE
+  let currentCalendarDate = new Date();
+  let selectedDate = null;
+
   // UTILITY: Input sanitization to prevent XSS
   function sanitizeInput(input) {
     const textarea = document.createElement('textarea');
@@ -266,6 +369,104 @@
     
     document.getElementById('tabAdd').setAttribute('aria-selected', tab === 'add');
     document.getElementById('tabSummary').setAttribute('aria-selected', tab === 'summary');
+  }
+
+  // CALENDAR FUNCTIONS
+  function initializeCalendar() {
+    currentCalendarDate = new Date();
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    const year = currentCalendarDate.getFullYear();
+    const month = currentCalendarDate.getMonth();
+    
+    // Set header
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'];
+    document.getElementById('calendarMonth').textContent = `${monthNames[month]} ${year}`;
+    
+    // Clear grid
+    const grid = document.getElementById('calendarGrid');
+    grid.innerHTML = '';
+    
+    // Add weekday headers
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    weekdays.forEach(day => {
+      const dayEl = document.createElement('div');
+      dayEl.className = 'calendar-weekday';
+      dayEl.textContent = day;
+      grid.appendChild(dayEl);
+    });
+    
+    // Get first day of month and number of days
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+    
+    // Add previous month's days
+    for (let i = firstDay - 1; i >= 0; i--) {
+      const dayEl = document.createElement('div');
+      dayEl.className = 'calendar-day other-month';
+      dayEl.textContent = daysInPrevMonth - i;
+      grid.appendChild(dayEl);
+    }
+    
+    // Add current month's days
+    const today = new Date();
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayEl = document.createElement('div');
+      dayEl.className = 'calendar-day';
+      dayEl.textContent = day;
+      
+      const dateObj = new Date(year, month, day);
+      const dateStr = dateObj.toISOString().split('T')[0];
+      const todayStr = today.toISOString().split('T')[0];
+      
+      // Highlight today
+      if (dateStr === todayStr) {
+        dayEl.classList.add('today');
+      }
+      
+      // Highlight selected date
+      if (selectedDate && dateStr === selectedDate) {
+        dayEl.classList.add('selected');
+      }
+      
+      dayEl.onclick = () => selectDate(dateStr);
+      grid.appendChild(dayEl);
+    }
+    
+    // Add next month's days
+    const totalCells = grid.children.length - 7; // Subtract weekday headers
+    const remainingCells = 42 - totalCells; // 6 rows * 7 days
+    for (let day = 1; day <= remainingCells; day++) {
+      const dayEl = document.createElement('div');
+      dayEl.className = 'calendar-day other-month';
+      dayEl.textContent = day;
+      grid.appendChild(dayEl);
+    }
+  }
+
+  function selectDate(dateStr) {
+    selectedDate = dateStr;
+    document.getElementById('date').value = dateStr;
+    
+    const date = new Date(dateStr);
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('dateDisplay').textContent = date.toLocaleDateString('en-US', options);
+    
+    renderCalendar();
+  }
+
+  function previousMonth() {
+    currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+    renderCalendar();
+  }
+
+  function nextMonth() {
+    currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+    renderCalendar();
   }
 
   // AUTH
@@ -367,9 +568,11 @@
       });
 
       // IMPROVEMENT: Clear form after successful save
-      document.getElementById('date').value = '';
       document.getElementById('amount').value = '';
       categorySelect.value = '';
+      selectedDate = null;
+      document.getElementById('dateDisplay').textContent = 'Select a date';
+      renderCalendar();
 
       showNotification('Expense saved successfully!', 'success');
     } catch (error) {
@@ -469,6 +672,7 @@
   }
 
   setDefaultDates();
+  initializeCalendar();
 </script>
 
 </body>
