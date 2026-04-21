@@ -1,474 +1,337 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Expense Tracker</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expense Tracker</title>
 
-  <!-- Google Fonts for modern look -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Inter', Arial, sans-serif;
-      background: linear-gradient(120deg, #e0e7ff 0%, #f5f5f5 100%);
-      margin: 0;
-      min-height: 100vh;
-    }
-    .container {
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 30px 20px;
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-    }
-    h1 {
-      text-align: center;
-      font-weight: 600;
-      color: #2d3748;
-      margin-bottom: 30px;
-    }
-    .card {
-      background: #f8fafc;
-      padding: 24px 18px;
-      margin: 18px 0;
-      border-radius: 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-    input, select, button {
-      padding: 12px;
-      margin: 7px 0;
-      width: 100%;
-      border-radius: 8px;
-      border: 1px solid #cbd5e1;
-      font-size: 1rem;
-      transition: border 0.2s;
-    }
-    input:focus, select:focus {
-      border: 1.5px solid #6366f1;
-      outline: none;
-    }
-    button {
-      background: linear-gradient(90deg, #6366f1 0%, #2563eb 100%);
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      box-shadow: 0 2px 8px rgba(99,102,241,0.08);
-      transition: background 0.2s;
-    }
-    button:hover {
-      background: linear-gradient(90deg, #4338ca 0%, #1e40af 100%);
-    }
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    .row {
-      display: flex;
-      gap: 14px;
-    }
-    .row > * {
-      flex: 1;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      border-radius: 10px;
-      overflow: hidden;
-      margin-top: 18px;
-    }
-    th, td {
-      padding: 12px 10px;
-      border-bottom: 1px solid #e5e7eb;
-      text-align: left;
-      font-size: 1rem;
-    }
-    th {
-      background: #f1f5f9;
-      font-weight: 600;
-      color: #374151;
-    }
-    .tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 18px;
-    }
-    .tabs button {
-      flex: 1;
-      background: #f1f5f9;
-      color: #6366f1;
-      border: 1px solid #c7d2fe;
-      border-radius: 8px 8px 0 0;
-      box-shadow: none;
-      font-weight: 600;
-      transition: background 0.2s, color 0.2s;
-    }
-    .tabs button.active, .tabs button:focus {
-      background: #6366f1;
-      color: #fff;
-      border-bottom: 2px solid #6366f1;
-    }
-    .notification {
-      padding: 12px 16px;
-      margin: 12px 0;
-      border-radius: 8px;
-      display: none;
-      font-weight: 500;
-      animation: slideIn 0.3s ease;
-    }
-    .notification.show {
-      display: block;
-    }
-    .notification.success {
-      background: #d1fae5;
-      color: #065f46;
-      border-left: 4px solid #10b981;
-    }
-    .notification.error {
-      background: #fee2e2;
-      color: #991b1b;
-      border-left: 4px solid #ef4444;
-    }
-    .notification.info {
-      background: #dbeafe;
-      color: #1e40af;
-      border-left: 4px solid #3b82f6;
-    }
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    @media (max-width: 600px) {
-      .container { padding: 10px; }
-      .card { padding: 12px 6px; }
-      .row { flex-direction: column; gap: 0; }
-    }
-    #summaryChart { margin: 24px 0 0 0; max-width: 500px; display: block; }
-  </style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', Arial, sans-serif;
+  background: linear-gradient(120deg, #e0e7ff 0%, #f5f5f5 100%);
+  margin: 0;
+}
+
+.container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 30px;
+  background: #fff;
+  border-radius: 18px;
+}
+
+.card {
+  background: #f8fafc;
+  padding: 20px;
+  margin: 15px 0;
+  border-radius: 12px;
+}
+
+button {
+  padding: 10px;
+  width: 100%;
+  border-radius: 8px;
+  border: none;
+  background: #6366f1;
+  color: white;
+  cursor: pointer;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+}
+
+.tabs button.active {
+  background: #4338ca;
+}
+
+/* CALENDAR */
+#calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.calendar-day {
+  padding: 10px;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #f1f5f9;
+}
+
+.calendar-day:hover {
+  background: #c7d2fe;
+}
+
+.calendar-day.selected {
+  background: #6366f1;
+  color: white;
+  font-weight: bold;
+}
+</style>
 </head>
+
 <body>
 
 <div class="container">
-  <h1>Expense Tracker</h1>
 
-  <!-- NOTIFICATION AREA -->
-  <div id="notification" class="notification" role="alert" aria-live="polite"></div>
+<h1>Expense Tracker</h1>
 
-  <!-- AUTH -->
-  <div class="card">
-    <button onclick="login()" aria-label="Login with Google">Login with Google</button>
-    <button onclick="logout()" aria-label="Logout">Logout</button>
-    <p id="userInfo" role="status">Not logged in</p>
-  </div>
+<div id="notification"></div>
 
-  <div class="tabs">
-    <button id="tabAdd" onclick="showTab('add')" class="active" aria-selected="true">Add Expense</button>
-    <button id="tabSummary" onclick="showTab('summary')" aria-selected="false">Summary</button>
-  </div>
+<!-- AUTH -->
+<div class="card">
+  <button onclick="login()">Login</button>
+  <button onclick="logout()">Logout</button>
+  <p id="userInfo">Not logged in</p>
+</div>
 
-  <!-- ADD EXPENSE -->
-  <div id="add" class="card">
-    <h3>Add Expense</h3>
-    <input type="date" id="date" aria-label="Date">
-    <input type="number" id="amount" placeholder="Amount" aria-label="Amount" step="0.01">
-    <select id="category" aria-label="Category">
-      <option value="">Select a category</option>
-    </select>
-    <button id="saveExpenseBtn" onclick="addExpense()" aria-label="Save Expense">Save Expense</button>
-    <div class="card">
-      <input type="text" id="newCategory" placeholder="Add new category" aria-label="New category name">
-      <button onclick="addCategory()" aria-label="Add new category">Add Category</button>
-    </div>
-  </div>
+<div class="tabs">
+  <button id="tabAdd" onclick="showTab('add')" class="active">Add Expense</button>
+  <button id="tabSummary" onclick="showTab('summary')">Summary</button>
+</div>
 
-  <!-- SUMMARY -->
-  <div id="summary" class="card" style="display:none;">
-    <h3>Summary</h3>
-    <div class="row">
-      <input type="date" id="startDate" aria-label="Start date">
-      <input type="date" id="endDate" aria-label="End date">
-    </div>
-    <button id="loadSummaryBtn" onclick="loadSummary()" aria-label="Load Summary">Load Summary</button>
-    <canvas id="summaryChart"></canvas>
-    <table role="table">
-      <thead>
-        <tr><th scope="col">Category</th><th scope="col">Total</th></tr>
-      </thead>
-      <tbody id="summaryTable"></tbody>
-    </table>
-  </div>
+<!-- ADD -->
+<div id="add" class="card">
+
+<h3>Select Date</h3>
+
+<div id="calendar"></div>
+
+<p><strong>Selected:</strong> <span id="selectedDate"></span></p>
+
+<div id="dayExpenses" style="display:none;">
+  <h4>Expenses</h4>
+  <ul id="expenseList"></ul>
+</div>
+
+<input type="number" id="amount" placeholder="Amount">
+
+<select id="category">
+  <option value="">Select category</option>
+</select>
+
+<button onclick="addExpense()">Save Expense</button>
+
+<input type="text" id="newCategory" placeholder="New category">
+<button onclick="addCategory()">Add Category</button>
+
+</div>
+
+<!-- SUMMARY -->
+<div id="summary" class="card" style="display:none;">
+  <h3>Summary</h3>
+
+  <input type="date" id="startDate">
+  <input type="date" id="endDate">
+
+  <button onclick="loadSummary()">Load Summary</button>
+
+  <canvas id="summaryChart"></canvas>
+
+  <table>
+    <tbody id="summaryTable"></tbody>
+  </table>
+</div>
+
 </div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<!-- Chart.js -->
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-  // SECURITY: Move to environment variables in production
-  const firebaseConfig = {
-     apiKey: "AIzaSyC6mZQ9ldWreLhqzssZxnINxvc2gJ8cV9Q",
-     authDomain: "expense-tracker-d754a.firebaseapp.com",
-     projectId: "expense-tracker-d754a",
-     storageBucket: "expense-tracker-d754a.firebasestorage.app",
-     messagingSenderId: "702098345018",
-     appId: "1:702098345018:web:d39b173495ecb035a9f903",
-     measurementId: "G-89Z2J5EW11"
-  };
+const firebaseConfig = {
+    apiKey: "AIzaSyC6mZQ9ldWreLhqzssZxnINxvc2gJ8cV9Q",
+    authDomain: "expense-tracker-d754a.firebaseapp.com",
+    projectId: "expense-tracker-d754a",
+    storageBucket: "expense-tracker-d754a.firebasestorage.app",
+    messagingSenderId: "702098345018",
+    appId: "1:702098345018:web:d39b173495ecb035a9f903",
+    measurementId: "G-89Z2J5EW11"
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-  const auth = firebase.auth();
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
 
-  const categorySelect = document.getElementById('category');
-  const notificationDiv = document.getElementById('notification');
+let selectedDate = null;
+let summaryChart = null;
 
-  // UTILITY: Input sanitization to prevent XSS
-  function sanitizeInput(input) {
-    const textarea = document.createElement('textarea');
-    textarea.textContent = input;
-    return textarea.innerHTML;
+function showTab(tab) {
+  document.getElementById('add').style.display = tab === 'add' ? 'block':'none';
+  document.getElementById('summary').style.display = tab === 'summary' ? 'block':'none';
+}
+
+/* AUTH */
+function login() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider);
+}
+
+function logout() {
+  auth.signOut();
+}
+
+auth.onAuthStateChanged(user => {
+  document.getElementById('userInfo').textContent = user ? user.email : "Not logged in";
+  if (user) loadCategories();
+});
+
+/* CALENDAR */
+function generateCalendar() {
+  const calendar = document.getElementById('calendar');
+  calendar.innerHTML = '';
+
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = today.getMonth();
+
+  const firstDay = new Date(y, m, 1).getDay();
+  const total = new Date(y, m + 1, 0).getDate();
+
+  for (let i = 0; i < firstDay; i++) {
+    calendar.appendChild(document.createElement('div'));
   }
 
-  // UTILITY: Show inline notifications
-  function showNotification(message, type = 'info', duration = 3000) {
-    notificationDiv.textContent = message;
-    notificationDiv.className = `notification show ${type}`;
-    
-    if (duration > 0) {
-      setTimeout(() => {
-        notificationDiv.classList.remove('show');
-      }, duration);
-    }
+  for (let d = 1; d <= total; d++) {
+    const div = document.createElement('div');
+    div.className = 'calendar-day';
+    div.textContent = d;
+
+    div.onclick = () => selectDate(y, m, d, div);
+
+    calendar.appendChild(div);
+  }
+}
+
+function selectDate(y, m, d, el) {
+  document.querySelectorAll('.calendar-day').forEach(x => x.classList.remove('selected'));
+  el.classList.add('selected');
+
+  selectedDate = new Date(y, m, d).toISOString().split('T')[0];
+  document.getElementById('selectedDate').textContent = selectedDate;
+
+  loadExpensesForDate(selectedDate);
+}
+
+/* CATEGORY */
+async function loadCategories() {
+  const snapshot = await db.collection('categories')
+    .where("user","==",auth.currentUser.uid).get();
+
+  const select = document.getElementById('category');
+  select.innerHTML = '<option value="">Select</option>';
+
+  snapshot.forEach(doc => {
+    const opt = document.createElement('option');
+    opt.value = doc.data().name;
+    opt.textContent = doc.data().name;
+    select.appendChild(opt);
+  });
+}
+
+async function addCategory() {
+  const name = document.getElementById('newCategory').value;
+  await db.collection('categories').add({
+    name, user: auth.currentUser.uid
+  });
+  loadCategories();
+}
+
+/* EXPENSE */
+async function addExpense() {
+  const amount = parseFloat(document.getElementById('amount').value);
+  const category = document.getElementById('category').value;
+
+  if (!selectedDate || !amount || !category) {
+    alert("Fill all fields");
+    return;
   }
 
-  // TAB MANAGEMENT
-  function showTab(tab) {
-    document.getElementById('add').style.display = tab === 'add' ? 'block':'none';
-    document.getElementById('summary').style.display = tab === 'summary' ? 'block':'none';
-    
-    document.getElementById('tabAdd').classList.toggle('active', tab === 'add');
-    document.getElementById('tabSummary').classList.toggle('active', tab === 'summary');
-    
-    document.getElementById('tabAdd').setAttribute('aria-selected', tab === 'add');
-    document.getElementById('tabSummary').setAttribute('aria-selected', tab === 'summary');
+  await db.collection('expenses').add({
+    date: selectedDate,
+    amount,
+    category,
+    user: auth.currentUser.uid
+  });
+
+  loadExpensesForDate(selectedDate);
+}
+
+/* LOAD DAY EXPENSES */
+async function loadExpensesForDate(date) {
+  const list = document.getElementById('expenseList');
+  list.innerHTML = '';
+
+  const snap = await db.collection('expenses')
+    .where("user","==",auth.currentUser.uid)
+    .where("date","==",date)
+    .get();
+
+  if (snap.empty) {
+    document.getElementById('dayExpenses').style.display = 'none';
+    return;
   }
 
-  // AUTH
-  function login() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).catch(err => {
-      showNotification(err.message || 'Login failed.', 'error');
-    });
-  }
+  snap.forEach(doc => {
+    const e = doc.data();
+    const li = document.createElement('li');
+    li.textContent = e.category + ": " + e.amount;
+    list.appendChild(li);
+  });
 
-  function logout() {
-    auth.signOut().catch(err => {
-      showNotification('Logout failed: ' + err.message, 'error');
-    });
-  }
+  document.getElementById('dayExpenses').style.display = 'block';
+}
 
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      document.getElementById('userInfo').textContent = "Logged in as " + sanitizeInput(user.email);
-      loadCategories();
-    } else {
-      document.getElementById('userInfo').textContent = "Not logged in";
-      categorySelect.innerHTML = '<option value="">Select a category</option>';
+/* SUMMARY */
+async function loadSummary() {
+  const start = document.getElementById('startDate').value;
+  const end = document.getElementById('endDate').value;
+
+  const snap = await db.collection('expenses')
+    .where("user","==",auth.currentUser.uid).get();
+
+  let sum = {};
+
+  snap.forEach(doc => {
+    const e = doc.data();
+    if ((!start || e.date>=start) && (!end || e.date<=end)) {
+      sum[e.category] = (sum[e.category]||0)+e.amount;
     }
   });
 
-  // CATEGORY MANAGEMENT
-  async function loadCategories() {
-    if (!auth.currentUser) return;
+  const table = document.getElementById('summaryTable');
+  table.innerHTML = '';
 
-    try {
-      categorySelect.innerHTML = '<option value="">Select a category</option>';
-      const snapshot = await db.collection('categories')
-        .where("user", "==", auth.currentUser.uid)
-        .get();
+  Object.keys(sum).forEach(cat => {
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${cat}</td><td>${sum[cat]}</td>`;
+    table.appendChild(row);
+  });
 
-      snapshot.forEach(doc => {
-        const opt = document.createElement('option');
-        const categoryName = sanitizeInput(doc.data().name);
-        opt.value = categoryName;
-        opt.textContent = categoryName;
-        categorySelect.appendChild(opt);
-      });
-    } catch (error) {
-      showNotification('Failed to load categories: ' + error.message, 'error');
+  if (summaryChart) summaryChart.destroy();
+
+  summaryChart = new Chart(document.getElementById('summaryChart'), {
+    type:'pie',
+    data:{
+      labels:Object.keys(sum),
+      datasets:[{data:Object.values(sum)}]
     }
-  }
+  });
+}
 
-  async function addCategory() {
-    if (!auth.currentUser) {
-      showNotification("Please login first", 'error');
-      return;
-    }
-
-    const name = document.getElementById('newCategory').value.trim();
-    if (!name) {
-      showNotification('Category name cannot be empty', 'error');
-      return;
-    }
-
-    try {
-      await db.collection('categories').add({
-        name: sanitizeInput(name),
-        user: auth.currentUser.uid,
-        createdAt: new Date()
-      });
-
-      document.getElementById('newCategory').value = '';
-      loadCategories();
-      showNotification('Category added successfully!', 'success');
-    } catch (error) {
-      showNotification('Failed to add category: ' + error.message, 'error');
-    }
-  }
-
-  // EXPENSE MANAGEMENT
-  async function addExpense() {
-    if (!auth.currentUser) {
-      showNotification("Please login first", 'error');
-      return;
-    }
-
-    const date = document.getElementById('date').value;
-    const amount = parseFloat(document.getElementById('amount').value);
-    const category = categorySelect.value;
-
-    if (!date || isNaN(amount) || amount <= 0 || !category) {
-      showNotification('Please fill all fields with valid values', 'error');
-      return;
-    }
-
-    try {
-      await db.collection('expenses').add({
-        date,
-        amount,
-        category: sanitizeInput(category),
-        user: auth.currentUser.uid,
-        createdAt: new Date()
-      });
-
-      // IMPROVEMENT: Clear form after successful save
-      document.getElementById('date').value = '';
-      document.getElementById('amount').value = '';
-      categorySelect.value = '';
-
-      showNotification('Expense saved successfully!', 'success');
-    } catch (error) {
-      showNotification('Failed to save expense: ' + error.message, 'error');
-    }
-  }
-
-  // SUMMARY
-  let summaryChart = null;
-
-  async function loadSummary() {
-    if (!auth.currentUser) {
-      showNotification("Please login first", 'error');
-      return;
-    }
-
-    const start = document.getElementById('startDate').value;
-    const end = document.getElementById('endDate').value;
-
-    if (start && end && start > end) {
-      showNotification('Start date cannot be after end date', 'error');
-      return;
-    }
-
-    try {
-      const snapshot = await db.collection('expenses')
-        .where("user", "==", auth.currentUser.uid)
-        .get();
-
-      let summary = {};
-
-      snapshot.forEach(doc => {
-        const e = doc.data();
-        if ((!start || e.date >= start) && (!end || e.date <= end)) {
-          summary[e.category] = (summary[e.category] || 0) + e.amount;
-        }
-      });
-
-      // Update table
-      const table = document.getElementById('summaryTable');
-      table.innerHTML = ''; 
-      
-      if (Object.keys(summary).length === 0) {
-        table.innerHTML = '<tr><td colspan="2" style="text-align: center; color: #999;">No expenses found</td></tr>';
-      } else {
-        Object.keys(summary).forEach(cat => {
-          const row = document.createElement('tr');
-          row.innerHTML = `<td>${sanitizeInput(cat)}</td><td>${summary[cat].toFixed(2)}</td>`;
-          table.appendChild(row);
-        });
-      }
-
-      // Update chart
-      const chartEl = document.getElementById('summaryChart');
-      const categories = Object.keys(summary);
-      const totals = categories.map(cat => summary[cat]);
-      const colors = [
-        '#6366f1','#f59e42','#10b981','#ef4444','#f472b6','#facc15','#38bdf8','#a3e635','#f87171','#818cf8','#fb7185','#34d399','#fbbf24','#60a5fa','#eab308'
-      ];
-      
-      if (summaryChart) summaryChart.destroy();
-      
-      if (categories.length > 0) {
-        summaryChart = new Chart(chartEl, {
-          type: 'pie',
-          data: {
-            labels: categories.map(c => sanitizeInput(c)),
-            datasets: [{
-              data: totals,
-              backgroundColor: colors.slice(0, categories.length),
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { position: 'bottom' },
-              title: { display: true, text: 'Expenses by Category' }
-            }
-          }
-        });
-      }
-
-      showNotification('Summary loaded successfully!', 'success', 2000);
-    } catch (error) {
-      showNotification('Failed to load summary: ' + error.message, 'error');
-    }
-  }
-
-  // DATE INITIALIZATION - FIXED: Create new Date instance
-  function setDefaultDates() {
-    const today = new Date();
-    const first = new Date(today); // Create new instance instead of mutating
-    first.setDate(today.getDate() - today.getDay());
-
-    document.getElementById('startDate').value = first.toISOString().split('T')[0];
-    document.getElementById('endDate').value = today.toISOString().split('T')[0];
-  }
-
-  setDefaultDates();
+/* INIT */
+generateCalendar();
 </script>
 
 </body>
