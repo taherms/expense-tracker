@@ -222,6 +222,12 @@
       border-color: #6366f1;
       font-weight: 600;
     }
+    .calendar-day.has-expense {
+      background: #f59e42 !important;
+      color: #fff !important;
+      border-color: #f59e42 !important;
+      font-weight: 600;
+    }
     .calendar-day.today {
       border: 2px solid #10b981;
     }
@@ -380,7 +386,7 @@
   function renderCalendar() {
     const year = currentCalendarDate.getFullYear();
     const month = currentCalendarDate.getMonth();
-    
+    let expenseDates = new Set();
     // Set header
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'];
@@ -438,6 +444,7 @@
     }
     
     // Add next month's days
+    // Get all expense dates for this month (if logged in)
     const totalCells = grid.children.length - 7; // Subtract weekday headers
     const remainingCells = 42 - totalCells; // 6 rows * 7 days
     for (let day = 1; day <= remainingCells; day++) {
@@ -489,6 +496,10 @@
       loadCategories();
     } else {
       document.getElementById('userInfo').textContent = "Not logged in";
+      // Highlight if expense exists
+          if (expenseDates.has(dateStr)) {
+            dayEl.classList.add('has-expense');
+          }
       categorySelect.innerHTML = '<option value="">Select a category</option>';
     }
   });
