@@ -376,7 +376,7 @@
     </select>
     <button id="saveExpenseBtn" onclick="addExpense()" aria-label="Save Expense">Save Expense</button>
     <div id="expenseHistory" class="expense-history" aria-live="polite">
-      <h4>Expenses up to selected date</h4>
+      <h4>Expenses for selected date</h4>
       <p>Select a date to view saved expenses.</p>
     </div>
     <div class="card">
@@ -402,8 +402,9 @@
     </table>
   </div>
 </div>
+
 <footer class="site-footer">
-  Copyright © 2026. Developed by <strong>Taher Shabbiri</strong>.
+  Copyright © Taher Shabbiri. Developed by <strong>Taher Shabbiri</strong>.
 </footer>
 
 <!-- Firebase -->
@@ -594,7 +595,7 @@
     expenseHistoryDiv.innerHTML = '';
 
     const title = document.createElement('h4');
-    title.textContent = 'Expenses up to selected date';
+    title.textContent = 'Expenses for selected date';
     expenseHistoryDiv.appendChild(title);
 
     const message = document.createElement('p');
@@ -612,16 +613,16 @@
     }
 
     const matchingExpenses = userExpenses
-      .filter(expense => expense.date <= selectedDate)
+      .filter(expense => expense.date === selectedDate)
       .sort((a, b) => b.date.localeCompare(a.date));
 
     if (matchingExpenses.length === 0) {
-      message.textContent = `No expenses found on or before ${formatDateLabel(selectedDate)}.`;
+      message.textContent = `No expenses found for ${formatDateLabel(selectedDate)}.`;
       expenseHistoryDiv.appendChild(message);
       return;
     }
 
-    message.textContent = `Showing ${matchingExpenses.length} expense(s) saved on or before ${formatDateLabel(selectedDate)}.`;
+    message.textContent = `Showing ${matchingExpenses.length} expense(s) saved on ${formatDateLabel(selectedDate)}.`;
     expenseHistoryDiv.appendChild(message);
 
     const list = document.createElement('div');
