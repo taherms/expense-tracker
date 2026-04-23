@@ -558,7 +558,7 @@
     selectedDate = dateStr;
     document.getElementById('date').value = dateStr;
     
-    const date = new Date(dateStr);
+    const date = new Date(`${dateStr}T00:00:00`);
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     document.getElementById('dateDisplay').textContent = date.toLocaleDateString('en-US', options);
     
